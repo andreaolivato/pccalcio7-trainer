@@ -1,0 +1,6 @@
+# Keep the repository in LF, check out native line endings on Windows.
+* text=auto
+
+# Batch files must stay CRLF or cmd.exe can misparse them.
+*.cmd text eol=crlf
+*.bat text eol=crlf

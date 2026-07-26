@@ -1,0 +1,22 @@
+# Build output
+dist/
+*.exe
+*.pdb
+
+# Files the trainer writes next to itself at runtime. These are outputs, not
+# inputs - never ship them, and never commit them.
+#   .club      last club you selected
+#   .lang      chosen interface language
+#   .originals per-player values kept so Restore can undo an edit
+*.club
+*.lang
+*.originals
+
+# Research scratch
+backups/
+__pycache__/
+*.pyc
+
+# Editor / tooling
+.claude/
+.vs/
