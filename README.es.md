@@ -12,7 +12,8 @@
 
 Un trainer gratuito para **PC Calcio 7** y **PC Calcio 7 Plus** (Dinamic Multimedia, 1998),
 la edición italiana de **PC Fútbol 7**. Modifica tu partida mientras el juego está abierto:
-dinero del club, capacidad del estadio, y atributos, edad y moral de cualquier jugador.
+dinero del club, capacidad del estadio, y atributos, edad, nacionalidad y moral de cualquier
+jugador.
 
 ## En resumen
 
@@ -51,6 +52,7 @@ si prefieres compilarlo tú.
 | **Atributos** | Velocidad, Resistencia, Agresividad, Calidad, Juego de manos, Entradas, Pase, Regate, Remate, Tiro, Estado de forma |
 | **Media** | No se edita directamente: el juego la calcula como promedio de Velocidad, Resistencia, Agresividad y Calidad, así que subir esas sube la Media |
 | **Edad** | Cambiando el año de nacimiento — dura hasta que el juego recarga la carrera (nueva temporada o reinicio), porque las fechas de nacimiento se releen de la base de datos; basta con volver a aplicarla |
+| **Nacionalidad** | A elegir entre 31 países confirmados. Es el campo que usa la regla de *extracomunitarios*: hacer italiano a un brasileño libera una plaza de extranjero — confirmado en el juego alineando un cuarto extracomunitario. Misma duración que la edad: vuelve a aplicarla tras recargar |
 | **Moral** | De 23 a 99 |
 | **Restaurar** | Devuelve a un jugador los valores que tenía antes de tus cambios |
 

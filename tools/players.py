@@ -3,9 +3,10 @@
 Players are located by a name-pointer quad: four consecutive u32 pointers
 [short, full, previous-club, short] where ptr1 == ptr4 and ptr1 < ptr2, with
 short and full adjacent in a plain-ASCII string pool
-("Algerino\\0Jimmy ALGERINO\\0Chateauroux (96)\\0"). The previous-club string
-is elsewhere entirely for career-generated players (empty and ~2 MB away for
-G. Melosi), so ptr3 is only required to be a plausible pointer.
+("Algerino\\0Jimmy ALGERINO\\0Chateauroux (96)\\0"). The previous-club pointer
+is unreliable: elsewhere entirely for career-generated players (empty and
+~2 MB away for G. Melosi) and plain NULL for others (E. Cambiasso, Felipe),
+so ptr3 may be null or any plausible pointer.
 
 Record stride is 0xF8. Layout relative to the quad start Q:
 
@@ -34,11 +35,24 @@ The supported route is the game's own transfer screen: writing +0x10 and +0x68
 is enough to make a player appear under "direttore sportivo -> ingaggiare", and
 signing him there lets the game create the bookkeeping correctly. set_team()
 therefore writes only those two fields.
+    Q+0x1D   u8        NATIONALITY, an index into the game's country table
+                       (see NATIONS below). This byte alone drives the
+                       comunitario/extracomunitario rule: setting Rivaldo's
+                       10 (Brazil) to 36 (Italy) let a fourth non-EU player
+                       be fielded, confirmed in game. The database stores the
+                       PASSPORT nationality - Simeone holds 22 (Spain) and
+                       Almeyda 36 (Italy), which is how Dinamic modelled
+                       EU-passport South Americans.
     Q+0x99   13 bytes  the live card attributes (see ATTRS below)
     Q+0xA6   13 bytes  a second, similar run - base or potential values
     Q+0xE2   u16       birth year
     Q+0xE4   u8        birth day
     Q+0xE5   u8        birth month
+
+NATIONALITY, like the birth date, is static database data: it is re-imported
+from DBDAT\\jug*.fdi whenever the career is rebuilt (new season or reload), so
+the edit lasts for the current session and must be re-applied after a reload.
+Attribute edits are career state and do persist.
 
 The 13 attribute bytes at Q+0x99, all 0-99, every one confirmed on screen by
 probing Algerino with distinct values and reading his card:
@@ -99,6 +113,8 @@ Usage:
     python tools/players.py set Algerino tiro 90   # set any attribute
     python tools/players.py media Algerino 95      # set Media (writes slots 0-3)
     python tools/players.py age Algerino 22        # set age via the birth year
+    python tools/players.py nat Rivaldo italy      # set nationality (name or code)
+    python tools/players.py nations                # list the known country codes
     python tools/players.py move Algerino 204      # change club
     python tools/players.py restore Algerino       # undo this tool's writes
 """
@@ -117,10 +133,44 @@ OFF_TEAM = 0x10
 OFF_TEAM_REG = 0x68      # second club id; if this still points at the old club
                          # the player shows up as "Ceduto" and stays out of the
                          # formation, so a transfer must write both
+OFF_NAT = 0x1D
 OFF_ATTRS = 0x99
 OFF_BIRTH_YEAR = 0xE2
 OFF_BIRTH_DAY = 0xE4
 OFF_BIRTH_MONTH = 0xE5
+
+# Country codes confirmed against named players (2026-07-26). The list is the
+# game's own country table, alphabetical in Spanish (Alemania=2, Argentina=3...)
+# with later additions appended (USA=61, Japan=65). Codes not listed here are
+# real - the tool prints them as "code N" and accepts them numerically.
+NATIONS = {
+    2: "Germany", 3: "Argentina", 4: "Australia", 9: "Bosnia", 10: "Brazil",
+    13: "Cameroon", 14: "Chile", 17: "Croatia", 18: "Denmark", 19: "Scotland",
+    22: "Spain", 24: "France", 27: "Netherlands", 30: "England", 31: "Ireland",
+    33: "Iceland", 36: "Italy", 43: "Nigeria", 44: "Norway", 45: "Wales",
+    46: "Poland", 47: "Portugal", 48: "Czech Republic", 49: "Romania",
+    53: "Sweden", 54: "Switzerland", 56: "Ukraine", 57: "Uruguay",
+    58: "Yugoslavia", 61: "USA", 65: "Japan",
+}
+
+
+def nation_name(code):
+    return NATIONS.get(code, f"code {code}")
+
+
+def nation_code(text):
+    """A country given by name (case-insensitive prefix) or numeric code."""
+    if text.isdigit():
+        code = int(text)
+        if not 0 <= code <= 255:
+            sys.exit("nationality code must be 0-255")
+        return code
+    t = text.lower()
+    hits = [c for c, n in NATIONS.items() if n.lower().startswith(t)]
+    if len(hits) != 1:
+        sys.exit(f"{text!r} matches {len(hits)} countries; use one of: "
+                 + ", ".join(sorted(NATIONS.values())) + ", or a numeric code")
+    return hits[0]
 
 RECORD_STRIDE = 0xF8
 
@@ -162,11 +212,12 @@ def scan(g, team_id=None, name=None):
         for o in range(0x20, n - 0x100, 4):
             p1, p2, p3, p4 = struct.unpack_from("<IIII", d, o)
             # short and full are adjacent in the pool, but the previous-club
-            # string is NOT for career-generated players (G. Melosi's sat ~2 MB
-            # away), so p3 only has to look like a pointer.
+            # pointer is unreliable: an empty string ~2 MB away for a
+            # career-generated player (G. Melosi), and plain NULL for others
+            # (E. Cambiasso, Felipe). Accept null or a plausible pointer.
             if p1 != p4 or p1 == 0 or not (p1 < p2) or p2 - p1 > 120:
                 continue
-            if not (0x00100000 <= p3 <= 0x7FFF0000):
+            if p3 != 0 and not (0x00100000 <= p3 <= 0x7FFF0000):
                 continue
             team = struct.unpack_from("<H", d, o + OFF_TEAM)[0]
             if team_id is not None and team != team_id:
@@ -188,6 +239,7 @@ def scan(g, team_id=None, name=None):
                 "team_reg": struct.unpack_from("<I", d, o + OFF_TEAM_REG)[0],
                 "attrs": attrs,
                 "media": media(attrs),
+                "nat": d[o + OFF_NAT],
                 "birth": (d[o + OFF_BIRTH_DAY], d[o + OFF_BIRTH_MONTH],
                           struct.unpack_from("<H", d, o + OFF_BIRTH_YEAR)[0]),
             })
@@ -212,7 +264,7 @@ def save_original(p):
     if key not in data:
         data[key] = {"short": p["short"], "attrs": p["attrs"],
                      "birth": list(p["birth"]), "team": p["team"],
-                     "team_reg": p["team_reg"]}
+                     "team_reg": p["team_reg"], "nat": p["nat"]}
         BACKUP.write_text(json.dumps(data, indent=2))
 
 
@@ -278,6 +330,11 @@ def set_morale(g, p, target):
     return tail, predict_morale(tail)
 
 
+def set_nation(g, p, code):
+    save_original(p)
+    g.write(p["addr"] + OFF_NAT, bytes([code]))
+
+
 def set_team(g, p, team_id):
     """Move a player. Both club fields must change: OFF_TEAM alone leaves him
     listed at the new club but flagged 'Ceduto' and out of the squad."""
@@ -298,16 +355,19 @@ def restore(g, p):
     g.write(p["addr"] + OFF_TEAM, struct.pack("<H", o["team"]))
     if "team_reg" in o:
         g.write(p["addr"] + OFF_TEAM_REG, struct.pack("<I", o["team_reg"]))
+    if "nat" in o:      # backups from before v1.1.0 have no nationality
+        g.write(p["addr"] + OFF_NAT, bytes([o["nat"]]))
     return o
 
 
 def show(g, p):
     d_, m_, y_ = p["birth"]
     print(f"{p['full'] or p['short']}  (id {p['pid']}) @0x{p['addr']:08X}")
-    print(f"  club {p['team']}   born {d_:02d}/{m_:02d}/{y_}   Media {p['media']}")
+    print(f"  club {p['team']}   born {d_:02d}/{m_:02d}/{y_}   Media {p['media']}"
+          f"   {nation_name(p['nat'])}")
     for name, i in ATTRS.items():
         print(f"    {name:<13} {p['attrs'][i]:>3}")
-    print(f"    slot12 (unmapped) {p['attrs'][12]:>3}")
+    print(f"    slot11 (unmapped) {p['attrs'][11]:>3}")
 
 
 def main():
@@ -344,6 +404,17 @@ def main():
             print("   (approximate - only the 99 maximum is exact)")
         return
 
+    elif cmd == "nat":
+        p = one(g, sys.argv[2])
+        code = nation_code(sys.argv[3])
+        set_nation(g, p, code)
+        print(f"{p['short']}: {nation_name(p['nat'])} -> {nation_name(code)} "
+              f"(code {p['nat']} -> {code})")
+        print("   lasts until the career is reloaded - static data is "
+              "re-imported from the FDI database")
+    elif cmd == "nations":
+        for code in sorted(NATIONS):
+            print(f"  {code:>3}  {NATIONS[code]}")
     elif cmd == "move":
         p = one(g, sys.argv[2])
         set_team(g, p, sys.argv[3])
@@ -363,6 +434,7 @@ def main():
             d_, m_, y_ = p["birth"]
             a = p["attrs"]
             print(f"  {p['short']:<16} media={p['media']:<3} b.{d_:02d}/{m_:02d}/{y_} "
+                  f"nat={nation_name(p['nat']):<14} "
                   f"vel={a[0]} res={a[1]} agg={a[2]} qua={a[3]} "
                   f"gm={a[4]} ent={a[5]} pas={a[6]} dri={a[7]} rif={a[8]} tir={a[9]} "
                   f"forma={a[10]} mor={a[11]}")

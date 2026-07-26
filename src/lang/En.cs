@@ -46,6 +46,10 @@ namespace PcCalcio7Trainer.Translations
             { "noBackup", "No original values stored for {0}." },
             { "morale", "Morale" },
             { "media", "Media {0}" },
+            { "nationality", "Nationality:" },
+            { "natSet", "{0}: nationality -> {1}. Holds for the running career; "
+                        + "a reload brings the original back." },
+            { "natCode", "Code {0}" },
 
             { "footer", "Changes apply to the running game and are kept when you save. "
                         + "They are lost if you reload without saving. Game files are never modified." },

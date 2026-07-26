@@ -4,11 +4,12 @@
 // [short, full, previous-club, short] where the first equals the fourth and
 // short/full sit adjacent in a plain-ASCII string pool
 // ("Algerino\0Jimmy ALGERINO\0Chateauroux (96)\0"). Records are 0xF8 apart.
-// The previous-club string is NOT guaranteed to be adjacent: for a player the
-// career generated itself (youth intake) it is an empty string in a different
-// heap block ~2 MB away - G. Melosi's quad was
-// [0x0E59EA58, 0x0E59EA62, 0x0E7990DD, 0x0E59EA58] - so p3 is only required
-// to look like a pointer, not to follow p2.
+// The previous-club pointer p3 is unreliable: for a player the career
+// generated itself (youth intake) it is an empty string in a different heap
+// block ~2 MB away - G. Melosi's quad was
+// [0x0E59EA58, 0x0E59EA62, 0x0E7990DD, 0x0E59EA58] - and for others it is
+// plain NULL (E. Cambiasso and Felipe at Sampdoria, September 2002). So p3
+// may be null or any plausible pointer; only the short/full pair is reliable.
 //
 // Every offset below was confirmed on screen by writing distinct values and
 // reading the player's card back, not by inference.
@@ -23,6 +24,11 @@ namespace PcCalcio7Trainer
         public const int Id = -0x08;         // u32, matches the database record id
         public const int DbTeam = -0x02;     // u16, club in the shipped 1999 database
         public const int Team = 0x10;        // u16, current club in the career
+        public const int Nat = 0x1D;         // u8, country code - see Nations.cs.
+                                             // This byte alone drives the game's
+                                             // comunitario/extracomunitario rule:
+                                             // Rivaldo 10 -> 36 (Italy) let a 4th
+                                             // non-EU player be fielded, on screen.
         public const int TeamReg = 0x68;     // u32, club registration; both are needed
         public const int Attrs = 0x99;       // 13 bytes, the card attributes
         public const int Morale = 0xB0;      // 5 bytes, recent-form history
@@ -53,6 +59,7 @@ namespace PcCalcio7Trainer
         public byte[] Attrs = new byte[13];
         public byte[] MoraleTail = new byte[5];
         public int BirthDay, BirthMonth, BirthYear;
+        public byte Nat;
 
         /// <summary>
         /// Media is not stored anywhere: it is the average of the first four
@@ -126,7 +133,10 @@ namespace PcCalcio7Trainer
                     uint p2 = BitConverter.ToUInt32(d, i + 4);
                     uint p3 = BitConverter.ToUInt32(d, i + 8);
                     if (p2 <= p1 || p2 - p1 > 120) continue;
-                    if (p3 < 0x00100000 || p3 > 0x7FFF0000) continue;
+                    // The previous-club pointer is unreliable: a distant empty
+                    // string for career-generated players (G. Melosi), plain
+                    // NULL for others (E. Cambiasso, Felipe). Null is fine.
+                    if (p3 != 0 && (p3 < 0x00100000 || p3 > 0x7FFF0000)) continue;
                     if (BitConverter.ToUInt16(d, i + PlayerOffsets.Team) != teamId) continue;
 
                     string sn = CachedString(p1, 40);
@@ -141,7 +151,8 @@ namespace PcCalcio7Trainer
                         Team = teamId,
                         BirthYear = BitConverter.ToUInt16(d, i + PlayerOffsets.BirthYear),
                         BirthDay = d[i + PlayerOffsets.BirthDay],
-                        BirthMonth = d[i + PlayerOffsets.BirthMonth]
+                        BirthMonth = d[i + PlayerOffsets.BirthMonth],
+                        Nat = d[i + PlayerOffsets.Nat]
                     };
                     Buffer.BlockCopy(d, i + PlayerOffsets.Attrs, p.Attrs, 0, 13);
                     Buffer.BlockCopy(d, i + PlayerOffsets.Morale, p.MoraleTail, 0, 5);
@@ -163,6 +174,16 @@ namespace PcCalcio7Trainer
         {
             if (year < 1930 || year > 2020) return false;
             return Write(p.Addr + PlayerOffsets.BirthYear, BitConverter.GetBytes((ushort)year));
+        }
+
+        /// <summary>
+        /// Nationality is static database data like the birth date: the edit
+        /// holds for the running career but is re-imported from DBDAT\jug*.fdi
+        /// when the career is rebuilt (new season or reload).
+        /// </summary>
+        public bool WriteNat(PlayerInfo p, byte code)
+        {
+            return Write(p.Addr + PlayerOffsets.Nat, new byte[] { code });
         }
 
         /// <summary>

@@ -31,7 +31,7 @@ set CALCIO7_DIR=C:\CALCIO7
 | Script | Purpose |
 |---|---|
 | `pcc7mem.py` | Process access layer: enumerate writable regions, read, write, locate the club record, find and set the club cash. The Python counterpart of `src/Trainer.cs`. |
-| `players.py` | Find players by their name-pointer signature; read and write attributes, birth date and club. Includes a CLI: `players.py 203`, `players.py show Algerino`, `players.py set Algerino tiro 90`. |
+| `players.py` | Find players by their name-pointer signature; read and write attributes, birth date, nationality and club. Includes a CLI: `players.py 203`, `players.py show Algerino`, `players.py set Algerino tiro 90`, `players.py nat Rivaldo italy`, `players.py nations`. |
 | `trainer.py` | CLI for the club-level values: `trainer.py findcash 337.6`, `trainer.py setcash 337.6 500`, `trainer.py capacity 203 90000`. |
 | `save_inspect.py` | Parses the game's own files rather than memory: the `DMFIv1.0` database archives in `DBDAT`, and what little is understood of `SAVE\MANAGER\E036-*\main.dat`. |
 | `morale_probe.py` | Isolates one byte of the morale form-history at a time, which is how the weights were measured. A worked example of the single-variable probe described in [docs/METHODOLOGY.md](../docs/METHODOLOGY.md). |

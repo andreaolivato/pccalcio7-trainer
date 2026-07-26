@@ -12,7 +12,7 @@
 
 A small, free trainer for **PC Calcio 7** and **PC Calcio 7 Plus** (Dinamic Multimedia, 1998) —
 the Italian edition of PC Fútbol 7. It edits your career while the game is running: club money,
-stadium capacity, and any player's attributes, age and morale.
+stadium capacity, and any player's attributes, age, nationality and morale.
 
 ## TL;DR
 
@@ -46,6 +46,7 @@ rather build it yourself.
 | **Player attributes** | Velocità, Resistenza, Aggressività, Qualità, Gioco Mani, Entrate, Passaggio, Dribbling, Rifinitura, Tiro, Stato di forma |
 | **Media** | Not editable directly — the game computes it as the average of Velocità, Resistenza, Aggressività and Qualità, so raising those raises Media |
 | **Player age** | By setting the birth year — lasts until the game reloads the career (new season or full reload), which re-imports birth dates from the database; just re-apply it |
+| **Nationality** | Pick from 31 confirmed countries. This is the field the *extracomunitario* rule reads, so making a Brazilian Italian frees up a foreigner slot — confirmed in game with a fourth non-EU player fielded. Same lifetime as age: re-apply after a career reload |
 | **Morale** | 23 to 99 |
 | **Restore** | Put any player back to the values he had before you touched him |
 

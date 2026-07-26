@@ -122,12 +122,13 @@ shape matches 4,789 places. Together they picked one club out of 624, in under a
 Located by a **name-pointer quad**: four consecutive u32 pointers `[short, full, previous-club,
 short]` where the first equals the fourth, aimed into a plain-ASCII string pool
 (`"Algerino\0Jimmy ALGERINO\0Chateauroux (96)\0"`). Short and full name are adjacent
-(`p1 < p2`, `p2 - p1 <= 120`), but the previous-club string is **not** guaranteed adjacent:
-for a player the career generated itself (youth intake) it is an empty string in a different
-heap block — G. Melosi's `p3` sat ~2 MB past `p1`, which is why an earlier `p3 - p1 <= 120`
-filter silently dropped him from the squad list. Practical filters: `p1`/`p3` inside
-`0x00100000–0x7FFF0000`, `p4 == p1`, `p1 < p2`, `p2 - p1 <= 120`, first string starting
-with a letter.
+(`p1 < p2`, `p2 - p1 <= 120`), but the previous-club pointer `p3` is **unreliable** and has
+cost a missing player twice. For a player the career generated itself (youth intake) it is an
+empty string in a different heap block — G. Melosi's `p3` sat ~2 MB past `p1`, which is why an
+earlier `p3 - p1 <= 120` filter silently dropped him. For other players it is plain **NULL** —
+E. Cambiasso and Felipe at Sampdoria, invisible until the `0x00100000 <= p3` filter learned to
+accept zero. Practical filters: `p1` inside `0x00100000–0x7FFF0000`, `p3` **null or** inside
+that range, `p4 == p1`, `p1 < p2`, `p2 - p1 <= 120`, first string starting with a letter.
 
 In the pool, each name pair is preceded by a small binary header (`… 00 DE 00 8C` before
 `"G. Melosi\0Genny Melosi\0"`); the `p1` pointer skips it, so the header never reaches the
@@ -143,6 +144,7 @@ string filter.
 | `Q-0x02` | u16 | Club in the shipped 1999 database | verified |
 | `Q+0x00` | 4×u32 | The name pointers | verified |
 | `Q+0x10` | u16 | **Current club in the career** | confirmed |
+| `Q+0x1D` | u8 | **Nationality** — country code, drives the extracomunitario rule (see below) | **confirmed** |
 | `Q+0x68` | u32 | Club registration — must match `+0x10` | confirmed |
 | `Q+0x99` | 13 bytes | **Card attributes** (see below) | **confirmed** |
 | `Q+0xA6` | 15 bytes | A second, similar run — base or potential values, ending in the morale history | measured |
@@ -208,6 +210,47 @@ player data is re-imported from `DBDAT\jug*.fdi` whenever the career is rebuilt,
 the original date. In the FDI player record the birth date is at `+0x2E`: `day u8, month u8,
 year u16` right before the birthplace string. Career-evolving data (the card attributes) lives
 in the save and keeps edits; the birth date is static data and does not.
+
+### Nationality is one byte, and it is the extracomunitario rule
+
+`Q+0x1D` holds a country code. It was found by diffing the full records of a 24-man squad
+grouped by known nationality: exactly one byte in the whole record was constant within every
+group and different across groups. Writing 36 over Rivaldo's 10 flipped him from Brazilian to
+Italian on screen **and let a fourth non-EU player be fielded** — the game has no separate
+comunitario flag, this byte is the whole story.
+
+The codes are indexes into the game's country table (the flag archive `DBDAT\BANDERAS.PKF` is
+keyed by them). The numbering is alphabetical in **Spanish** — Alemania=2, Argentina=3, …,
+"País de Gales"=45 between Noruega=44 and Polonia=46 — with later additions appended at the
+end (USA=61, Japan=65). Confirmed against named players in a live career, plus five league
+blocks of 900–2,100 players each whose modal code matches the league's country:
+
+| Code | Country | Code | Country | Code | Country |
+|---|---|---|---|---|---|
+| 2 | Germany | 24 | France | 46 | Poland |
+| 3 | Argentina | 27 | Netherlands | 47 | Portugal |
+| 4 | Australia | 30 | England | 48 | Czech Republic |
+| 9 | Bosnia | 31 | Ireland | 49 | Romania |
+| 10 | Brazil | 33 | Iceland | 53 | Sweden |
+| 13 | Cameroon | 36 | Italy | 54 | Switzerland |
+| 14 | Chile | 43 | Nigeria | 56 | Ukraine |
+| 17 | Croatia | 44 | Norway | 57 | Uruguay |
+| 18 | Denmark | 45 | Wales | 58 | Yugoslavia |
+| 19 | Scotland | | | 61 | USA |
+| 22 | Spain | | | 65 | Japan |
+
+Codes not in the table are real countries without a confirmed witness yet; by the alphabetical
+pattern, 5–6 should be Austria and Belgium, 50 Russia and 55 Turkey, but none of those has been
+checked against a named player.
+
+Two details worth knowing. First, the database stores the **passport** nationality: Simeone
+holds 22 (Spain) and Almeyda 36 (Italy) despite both being Argentine internationals, and
+Mboma holds 24 (France) — that is how Dinamic modelled EU-passport South Americans, and more
+evidence that this byte exists to feed the foreigner rule. Second, like the birth date this is
+static database data, re-imported from `DBDAT\jug*.fdi` when the career is rebuilt (the byte
+sits in the fixed block that follows the name strings in the FDI record). An edit therefore
+lasts until a reload or season rollover and must be re-applied; attribute edits are career
+state and persist.
 
 ### Morale — measured, not solved
 

@@ -436,6 +436,7 @@ namespace PcCalcio7Trainer
         private ListBox _playerList;
         private NumericUpDown[] _attrBoxes = new NumericUpDown[PlayerOffsets.Editable + 1];
         private NumericUpDown _birthYear;
+        private ComboBox _natBox;
         private Label _mediaLabel, _bornLabel;
         private Button _playerApply, _playerMax, _playerRestore;
         private List<PlayerInfo> _squad = new List<PlayerInfo>();
@@ -453,7 +454,7 @@ namespace PcCalcio7Trainer
         {
             Lang.Current = LoadLanguage();
             Text = Lang.T("title");
-            ClientSize = new Size(560, 842);
+            ClientSize = new Size(560, 872);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Font = new Font("Segoe UI", 9f);
@@ -562,7 +563,7 @@ namespace PcCalcio7Trainer
 
             _log = new TextBox
             {
-                Left = 12, Top = 674, Width = 534, Height = 130,
+                Left = 12, Top = 704, Width = 534, Height = 130,
                 Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical,
                 BackColor = Color.White
             };
@@ -570,7 +571,7 @@ namespace PcCalcio7Trainer
 
             Controls.Add(new Label
             {
-                Left = 12, Top = 810, Width = 534, Height = 30, ForeColor = Color.DimGray,
+                Left = 12, Top = 840, Width = 534, Height = 30, ForeColor = Color.DimGray,
                 Text = Lang.T("footer")
             });
 
@@ -580,15 +581,36 @@ namespace PcCalcio7Trainer
         // 11 card attributes plus Morale as a twelfth editable field.
         private const int MoraleSlot = 11;
 
+        /// <summary>A dropdown entry: country code plus its localised name.</summary>
+        private class NatItem
+        {
+            public byte Code;
+            public string Label;
+            public override string ToString() { return Label; }
+        }
+
+        /// <summary>
+        /// Select the entry for a code, adding a "Code N" entry first when the
+        /// player's country is not in the confirmed table - the code is still
+        /// real and still editable, it just has no name yet.
+        /// </summary>
+        private void SelectNation(byte code)
+        {
+            for (int i = 0; i < _natBox.Items.Count; i++)
+                if (((NatItem)_natBox.Items[i]).Code == code) { _natBox.SelectedIndex = i; return; }
+            int at = _natBox.Items.Add(new NatItem { Code = code, Label = Nations.NameOf(code) });
+            _natBox.SelectedIndex = at;
+        }
+
         private void BuildPlayersGroup()
         {
             _gbPlayers = new GroupBox
             {
-                Left = 12, Top = 366, Width = 534, Height = 300,
+                Left = 12, Top = 366, Width = 534, Height = 330,
                 Text = Lang.T("playersGroup"), Visible = false
             };
 
-            _playerList = new ListBox { Left = 14, Top = 22, Width = 168, Height = 264 };
+            _playerList = new ListBox { Left = 14, Top = 22, Width = 168, Height = 294 };
             _playerList.SelectedIndexChanged += delegate { LoadPlayer(); };
             _gbPlayers.Controls.Add(_playerList);
 
@@ -641,17 +663,32 @@ namespace PcCalcio7Trainer
             };
             _gbPlayers.Controls.Add(_birthYear);
 
-            _playerApply = new Button { Left = 196, Top = 252, Width = 100, Height = 28, Text = Lang.T("apply") };
+            // Nationality, the byte the comunitario/extracomunitario rule reads.
+            _gbPlayers.Controls.Add(new Label
+            {
+                Left = 196, Top = 251, AutoSize = true, Text = Lang.T("nationality")
+            });
+            _natBox = new ComboBox
+            {
+                Left = 340, Top = 247, Width = 180, Enabled = false,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            foreach (Nation n in Nations.All)
+                _natBox.Items.Add(new NatItem { Code = n.Code, Label = n.Name });
+            _natBox.Sorted = true;
+            _gbPlayers.Controls.Add(_natBox);
+
+            _playerApply = new Button { Left = 196, Top = 284, Width = 100, Height = 28, Text = Lang.T("apply") };
             _playerApply.Enabled = false;
             _playerApply.Click += delegate { ApplyPlayer(); };
             _gbPlayers.Controls.Add(_playerApply);
 
-            _playerMax = new Button { Left = 306, Top = 252, Width = 118, Height = 28, Text = Lang.T("maxAll") };
+            _playerMax = new Button { Left = 306, Top = 284, Width = 118, Height = 28, Text = Lang.T("maxAll") };
             _playerMax.Enabled = false;
             _playerMax.Click += delegate { MaxPlayer(); };
             _gbPlayers.Controls.Add(_playerMax);
 
-            _playerRestore = new Button { Left = 432, Top = 252, Width = 88, Height = 28, Text = Lang.T("restore") };
+            _playerRestore = new Button { Left = 432, Top = 284, Width = 88, Height = 28, Text = Lang.T("restore") };
             _playerRestore.Enabled = false;
             _playerRestore.Click += delegate { RestorePlayer(); };
             _gbPlayers.Controls.Add(_playerRestore);
@@ -687,6 +724,7 @@ namespace PcCalcio7Trainer
             for (int i = 0; i < _attrBoxes.Length; i++)
                 if (_attrBoxes[i] != null) _attrBoxes[i].Enabled = on;
             _birthYear.Enabled = on;
+            _natBox.Enabled = on;
             _playerApply.Enabled = on;
             _playerMax.Enabled = on;
             _playerRestore.Enabled = on && Selected != null && Backup.Has(Selected.Id);
@@ -714,6 +752,7 @@ namespace PcCalcio7Trainer
                 _attrBoxes[MoraleSlot].Value =
                     Math.Max(GameMemory.MoraleMin, Math.Min(99, morale));
                 _birthYear.Value = pl.BirthYear;
+                SelectNation(pl.Nat);
                 _bornLabel.Text = pl.Full;
                 _mediaLabel.Text = Lang.T("media", pl.Media);
                 SetPlayerControls(true);
@@ -734,10 +773,20 @@ namespace PcCalcio7Trainer
             ok &= _mem.WriteBirthYear(pl, (int)_birthYear.Value);
             int wantMorale = (int)_attrBoxes[MoraleSlot].Value;
             ok &= _mem.WriteMorale(pl, wantMorale);
+
+            NatItem nat = _natBox.SelectedItem as NatItem;
+            bool natChanged = nat != null && nat.Code != pl.Nat;
+            if (natChanged) ok &= _mem.WriteNat(pl, nat.Code);
+
             if (!ok) { Log(Lang.T("writeFail", pl.Short)); return; }
 
             Buffer.BlockCopy(attrs, 0, pl.Attrs, 0, 13);
             pl.BirthYear = (int)_birthYear.Value;
+            if (natChanged)
+            {
+                pl.Nat = nat.Code;
+                Log(Lang.T("natSet", pl.Short, nat.Label));
+            }
             int gotMorale = GameMemory.MoraleOf(pl.MoraleTail);
             Log(Lang.T("playerSet", pl.Short, pl.Media,
                     gotMorale != wantMorale ? Lang.T("moraleNear", gotMorale, wantMorale)
@@ -756,11 +805,13 @@ namespace PcCalcio7Trainer
             bool ok = _mem.WriteAttrs(pl, snap.Attrs);
             ok &= _mem.Write(pl.Addr + PlayerOffsets.Morale, snap.Morale);
             ok &= _mem.WriteBirthYear(pl, snap.BirthYear);
+            if (snap.Nat >= 0) ok &= _mem.WriteNat(pl, (byte)snap.Nat);
             if (!ok) { Log(Lang.T("writeFail", pl.Short)); return; }
 
             Buffer.BlockCopy(snap.Attrs, 0, pl.Attrs, 0, 13);
             Buffer.BlockCopy(snap.Morale, 0, pl.MoraleTail, 0, 5);
             pl.BirthYear = snap.BirthYear;
+            if (snap.Nat >= 0) pl.Nat = (byte)snap.Nat;
             Log(Lang.T("restored", pl.Short) + " " + Lang.T("redraw"));
             LoadPlayer();
         }

@@ -12,7 +12,7 @@
 
 Un trainer gratuito per **PC Calcio 7** e **PC Calcio 7 Plus** (Dinamic Multimedia, 1998).
 Modifica la tua carriera mentre il gioco è aperto: soldi del club, capienza dello stadio,
-e caratteristiche, età e morale di qualsiasi giocatore.
+e caratteristiche, età, nazionalità e morale di qualsiasi giocatore.
 
 ## In breve
 
@@ -46,6 +46,7 @@ preferisci compilarlo da solo.
 | **Caratteristiche** | Velocità, Resistenza, Aggressività, Qualità, Gioco Mani, Entrate, Passaggio, Dribbling, Rifinitura, Tiro, Stato di forma |
 | **Media** | Non si modifica direttamente: il gioco la calcola come media di Velocità, Resistenza, Aggressività e Qualità, quindi alzando quelle sale anche la Media |
 | **Età** | Impostando l'anno di nascita — dura finché il gioco non ricarica la carriera (nuova stagione o riavvio), perché le date di nascita vengono rilette dal database; basta riapplicarla |
+| **Nazionalità** | A scelta fra 31 paesi confermati. È il campo che il gioco usa per la regola degli *extracomunitari*: rendere italiano un brasiliano libera uno slot straniero — confermato in gioco schierando un quarto extracomunitario. Stessa durata dell'età: riapplicala dopo un ricaricamento |
 | **Morale** | Da 23 a 99 |
 | **Ripristina** | Riporta un giocatore ai valori che aveva prima delle tue modifiche |
 

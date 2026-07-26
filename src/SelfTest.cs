@@ -33,6 +33,18 @@ namespace PcCalcio7Trainer
             TeamInfo mine = mem.DetectHumanClub(teams);
             Console.WriteLine("DetectHumanClub -> " + (mine == null ? "(none)" : "id " + mine.Id)
                               + "  (" + sw.ElapsedMilliseconds + " ms)");
+
+            // A club id on the command line forces the club/squad checks even
+            // when auto-detection stands down (it refuses to guess whenever a
+            // value it keys on is not unique in memory).
+            uint forced;
+            if (mine == null && args.Length > 0 && uint.TryParse(args[0], out forced))
+            {
+                foreach (TeamInfo t in teams)
+                    if (t.Id == forced) { mine = t; break; }
+                Console.WriteLine("using club " + forced + " from the command line -> "
+                                  + (mine == null ? "not found" : "found"));
+            }
             if (mine != null)
             {
                 ClubText ct;
@@ -57,6 +69,7 @@ namespace PcCalcio7Trainer
                     PlayerInfo pl = squad[i];
                     Console.WriteLine("   " + pl.Short.PadRight(16) + " media=" + pl.Media
                                       + "  born " + pl.BirthDay + "/" + pl.BirthMonth + "/" + pl.BirthYear
+                                      + "  nat=" + Nations.NameOf(pl.Nat) + " (" + pl.Nat + ")"
                                       + "  vel=" + pl.Attrs[0] + " tir=" + pl.Attrs[9]
                                       + " forma=" + pl.Attrs[10]);
                 }

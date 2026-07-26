@@ -1,12 +1,26 @@
 # Changelog
 
-## Unreleased
+## v1.1.0
 
-* Fix: players the career generated itself (youth intake) were missing from the squad
-  list. Their previous-club string is an empty string in a distant heap block, so the
-  scanner's requirement that all three name strings sit within 120 bytes rejected the
-  record. Found with G. Melosi at Sampdoria; the squad scan now requires only the
-  short/full pair to be adjacent.
+* **New: player nationality.** A dropdown on the player panel with 31 confirmed
+  countries. Nationality is the byte the game's comunitario/extracomunitario rule
+  reads — making a Brazilian Italian frees up a foreigner slot, confirmed in game by
+  fielding a fourth non-EU player. Like the age, the edit lasts until the career is
+  reloaded (the value is re-imported from `DBDAT\jug*.fdi`); re-apply it after a
+  reload. Restore covers it, and `.originals` files from v1.0.0 still load.
+* The country table (code, name in the three languages, how each code was confirmed)
+  is documented in `docs/MEMORY-MAP.md`; unmapped codes show as "Code N" and remain
+  editable.
+* `SelfTest.exe` now prints each player's nationality, and accepts a club id argument
+  (`SelfTest 203`) to run the squad checks when club auto-detection stands down.
+* Fix: two classes of player were missing from the squad list, both from the same
+  unreliable field. A career-generated player's previous-club string is an empty
+  string in a distant heap block (found with G. Melosi), and for some players the
+  pointer to it is plain NULL (found with E. Cambiasso and Felipe) — the scanner
+  required all three name strings to sit within 120 bytes, then required the
+  pointer to at least look like a pointer, and both requirements dropped real
+  players. Only the short/full name pair is checked now; the previous-club pointer
+  may be null or anything plausible.
 * Known limit, now documented: an age edit lasts only until the game reloads the
   career (new season or full reload). Birth dates of database players are never
   stored in the save — the game re-imports them from `DBDAT\jug*.fdi` — so the

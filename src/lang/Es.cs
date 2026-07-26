@@ -49,6 +49,10 @@ namespace PcCalcio7Trainer.Translations
             { "noBackup", "No hay valores originales guardados para {0}." },
             { "morale", "Moral" },
             { "media", "Media {0}" },
+            { "nationality", "Nacionalidad:" },
+            { "natSet", "{0}: nacionalidad -> {1}. Vale para la partida en curso; "
+                        + "al recargar vuelve la original." },
+            { "natCode", "Código {0}" },
 
             { "footer", "Los cambios se aplican a la partida en curso y se mantienen si guardas. "
                         + "Se pierden si recargas sin guardar. Los archivos del juego nunca se modifican." },
