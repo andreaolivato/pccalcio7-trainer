@@ -2,6 +2,8 @@
 
 ### 🇪🇸 **Español** &nbsp;·&nbsp; 🇬🇧 [English](README.md) &nbsp;·&nbsp; 🇮🇹 [Italiano](README.it.md)
 
+🌐 Sitio oficial: **[calcio.dev/es](https://calcio.dev/es)**
+
 </div>
 
 ---
@@ -16,7 +18,8 @@ dinero del club, capacidad del estadio, y atributos, edad y moral de cualquier j
 
 ### ⬇ [**Descargar PcCalcio7Trainer.exe**](https://github.com/andreaolivato/pccalcio7-trainer/releases/latest/download/PcCalcio7Trainer.exe)
 
-Un solo archivo. Nada que instalar.
+Un solo archivo. Nada que instalar. El sitio oficial del proyecto es
+**[calcio.dev/es](https://calcio.dev/es)**.
 
 1. Abre **PC Calcio 7** y carga tu partida
 2. Ejecuta el programa: se conecta solo y detecta cuál es tu equipo
@@ -133,7 +136,8 @@ pueden quedar poco creíbles.
 
 ## Documentación técnica
 
-Esta versión es una guía rápida. La documentación completa está en inglés:
+Esta versión es una guía rápida. El sitio oficial del proyecto es
+**[calcio.dev/es](https://calcio.dev/es)**. La documentación completa está en inglés:
 
 * **[README.md](README.md)** — versión completa, con cómo funciona y cómo compilarlo
 * **[docs/MEMORY-MAP.md](docs/MEMORY-MAP.md)** — todos los campos encontrados en memoria, con

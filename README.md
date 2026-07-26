@@ -2,6 +2,8 @@
 
 ### 🇬🇧 **English** &nbsp;·&nbsp; 🇮🇹 [Italiano](README.it.md) &nbsp;·&nbsp; 🇪🇸 [Español](README.es.md)
 
+🌐 Official website: **[calcio.dev/en](https://calcio.dev/en)**
+
 </div>
 
 ---
@@ -16,7 +18,8 @@ stadium capacity, and any player's attributes, age and morale.
 
 ### ⬇ [**Download PcCalcio7Trainer.exe**](https://github.com/andreaolivato/pccalcio7-trainer/releases/latest/download/PcCalcio7Trainer.exe)
 
-One file. Nothing to install.
+One file. Nothing to install. This project's official website is
+**[calcio.dev/en](https://calcio.dev/en)**.
 
 1. Start **PC Calcio 7** and load your career
 2. Run the exe — it attaches on its own and works out which club is yours
@@ -181,6 +184,10 @@ finds what it needs by searching for it and validating what it finds:
   indexed archive whose text is stored XOR 0x61.
 
 ### Documentation
+
+The official website — **[calcio.dev/en](https://calcio.dev/en)**, also in
+[Italian](https://calcio.dev/) and [Spanish](https://calcio.dev/es) — is the home of the
+project outside GitHub.
 
 This project tries to be genuinely reusable rather than just a working binary. Two documents
 carry everything learned:

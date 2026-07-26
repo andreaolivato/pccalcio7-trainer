@@ -2,6 +2,8 @@
 
 ### 🇮🇹 **Italiano** &nbsp;·&nbsp; 🇬🇧 [English](README.md) &nbsp;·&nbsp; 🇪🇸 [Español](README.es.md)
 
+🌐 Sito ufficiale: **[calcio.dev](https://calcio.dev/)**
+
 </div>
 
 ---
@@ -16,7 +18,8 @@ e caratteristiche, età e morale di qualsiasi giocatore.
 
 ### ⬇ [**Scarica PcCalcio7Trainer.exe**](https://github.com/andreaolivato/pccalcio7-trainer/releases/latest/download/PcCalcio7Trainer.exe)
 
-Un solo file. Niente da installare.
+Un solo file. Niente da installare. Il sito ufficiale del progetto è
+**[calcio.dev](https://calcio.dev/)**.
 
 1. Avvia **PC Calcio 7** e carica la tua partita
 2. Apri il programma: si collega da solo e capisce qual è la tua squadra
@@ -128,7 +131,8 @@ poco credibili.
 
 ## Documentazione tecnica
 
-Questa versione è una guida rapida. La documentazione completa è in inglese:
+Questa versione è una guida rapida. Il sito ufficiale del progetto è
+**[calcio.dev](https://calcio.dev/)**. La documentazione completa è in inglese:
 
 * **[README.md](README.md)** — versione completa, con come funziona e come compilarlo
 * **[docs/MEMORY-MAP.md](docs/MEMORY-MAP.md)** — tutti i campi trovati in memoria, con il

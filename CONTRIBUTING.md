@@ -1,6 +1,8 @@
 # Contributing
 
 Thanks for looking. This is a small project with a small surface, so contributing is easy.
+The project's official website is **[calcio.dev/en](https://calcio.dev/en)** (also in
+[Italian](https://calcio.dev/) and [Spanish](https://calcio.dev/es)).
 
 ## Adding or fixing a translation
 
