@@ -1,3 +1,11 @@
+<div align="center">
+
+### 🇬🇧 **English** &nbsp;·&nbsp; 🇮🇹 [Italiano](README.it.md) &nbsp;·&nbsp; 🇪🇸 [Español](README.es.md)
+
+</div>
+
+---
+
 # PC Calcio 7 Trainer
 
 A small, free trainer for **PC Calcio 7** and **PC Calcio 7 Plus** (Dinamic Multimedia, 1998) —

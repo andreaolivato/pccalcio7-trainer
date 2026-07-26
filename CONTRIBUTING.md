@@ -25,6 +25,12 @@ same lines.
 
 `build.cmd` picks up `src/lang/*.cs` with a wildcard, so there's nothing to add there.
 
+**A translated README is just as welcome**, and independent of the interface. `README.it.md` and
+`README.es.md` are deliberately shorter than the English one — install, use, warnings, and links
+to the full documentation — because a short accurate translation ages better than a full one
+that drifts. Copy either as a starting point, name it `README.<code>.md`, and add it to the
+language bar at the top of all the others.
+
 **Partial translations are welcome.** Any key you leave out falls back to Italian rather than
 showing a raw key, so submitting something incomplete is genuinely useful — it doesn't have to
 be finished to be merged.
