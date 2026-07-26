@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+* Fix: players the career generated itself (youth intake) were missing from the squad
+  list. Their previous-club string is an empty string in a distant heap block, so the
+  scanner's requirement that all three name strings sit within 120 bytes rejected the
+  record. Found with G. Melosi at Sampdoria; the squad scan now requires only the
+  short/full pair to be adjacent.
+
 ## v1.0.0
 
 First release.

@@ -2,8 +2,13 @@
 //
 // A player is found by his name-pointer quad: four consecutive pointers
 // [short, full, previous-club, short] where the first equals the fourth and
-// they climb, all aimed at a plain-ASCII string pool
+// short/full sit adjacent in a plain-ASCII string pool
 // ("Algerino\0Jimmy ALGERINO\0Chateauroux (96)\0"). Records are 0xF8 apart.
+// The previous-club string is NOT guaranteed to be adjacent: for a player the
+// career generated itself (youth intake) it is an empty string in a different
+// heap block ~2 MB away - G. Melosi's quad was
+// [0x0E59EA58, 0x0E59EA62, 0x0E7990DD, 0x0E59EA58] - so p3 is only required
+// to look like a pointer, not to follow p2.
 //
 // Every offset below was confirmed on screen by writing distinct values and
 // reading the player's card back, not by inference.
@@ -120,7 +125,8 @@ namespace PcCalcio7Trainer
                     if (p4 != p1) continue;
                     uint p2 = BitConverter.ToUInt32(d, i + 4);
                     uint p3 = BitConverter.ToUInt32(d, i + 8);
-                    if (p2 <= p1 || p3 <= p2 || p3 - p1 > 120) continue;
+                    if (p2 <= p1 || p2 - p1 > 120) continue;
+                    if (p3 < 0x00100000 || p3 > 0x7FFF0000) continue;
                     if (BitConverter.ToUInt16(d, i + PlayerOffsets.Team) != teamId) continue;
 
                     string sn = CachedString(p1, 40);

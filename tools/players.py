@@ -1,9 +1,11 @@
 """Player records in PC Calcio 7 Plus memory.
 
 Players are located by a name-pointer quad: four consecutive u32 pointers
-[short, full, previous-club, short] where ptr1 == ptr4 and ptr1 < ptr2 < ptr3,
-all pointing into a plain-ASCII string pool
-("Algerino\\0Jimmy ALGERINO\\0Chateauroux (96)\\0").
+[short, full, previous-club, short] where ptr1 == ptr4 and ptr1 < ptr2, with
+short and full adjacent in a plain-ASCII string pool
+("Algerino\\0Jimmy ALGERINO\\0Chateauroux (96)\\0"). The previous-club string
+is elsewhere entirely for career-generated players (empty and ~2 MB away for
+G. Melosi), so ptr3 is only required to be a plausible pointer.
 
 Record stride is 0xF8. Layout relative to the quad start Q:
 
@@ -159,7 +161,12 @@ def scan(g, team_id=None, name=None):
         n = len(d)
         for o in range(0x20, n - 0x100, 4):
             p1, p2, p3, p4 = struct.unpack_from("<IIII", d, o)
-            if p1 != p4 or p1 == 0 or not (p1 < p2 < p3) or p3 - p1 > 120:
+            # short and full are adjacent in the pool, but the previous-club
+            # string is NOT for career-generated players (G. Melosi's sat ~2 MB
+            # away), so p3 only has to look like a pointer.
+            if p1 != p4 or p1 == 0 or not (p1 < p2) or p2 - p1 > 120:
+                continue
+            if not (0x00100000 <= p3 <= 0x7FFF0000):
                 continue
             team = struct.unpack_from("<H", d, o + OFF_TEAM)[0]
             if team_id is not None and team != team_id:

@@ -120,9 +120,18 @@ shape matches 4,789 places. Together they picked one club out of 624, in under a
 ## 4. Player record
 
 Located by a **name-pointer quad**: four consecutive u32 pointers `[short, full, previous-club,
-short]` where the first equals the fourth and they ascend, all aimed into a plain-ASCII string
-pool (`"Algerino\0Jimmy ALGERINO\0Chateauroux (96)\0"`). Practical filters: pointers inside
-`0x00100000–0x7FFF0000`, `p3 - p1 <= 120`, first string starting with a letter.
+short]` where the first equals the fourth, aimed into a plain-ASCII string pool
+(`"Algerino\0Jimmy ALGERINO\0Chateauroux (96)\0"`). Short and full name are adjacent
+(`p1 < p2`, `p2 - p1 <= 120`), but the previous-club string is **not** guaranteed adjacent:
+for a player the career generated itself (youth intake) it is an empty string in a different
+heap block — G. Melosi's `p3` sat ~2 MB past `p1`, which is why an earlier `p3 - p1 <= 120`
+filter silently dropped him from the squad list. Practical filters: `p1`/`p3` inside
+`0x00100000–0x7FFF0000`, `p4 == p1`, `p1 < p2`, `p2 - p1 <= 120`, first string starting
+with a letter.
+
+In the pool, each name pair is preceded by a small binary header (`… 00 DE 00 8C` before
+`"G. Melosi\0Genny Melosi\0"`); the `p1` pointer skips it, so the header never reaches the
+string filter.
 
 **Record stride is 0xF8.** All offsets below are relative to the quad, called `Q`.
 
