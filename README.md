@@ -45,7 +45,7 @@ rather build it yourself.
 | **Stadium capacity** | Any value from 100 to 1,000,000 seats |
 | **Player attributes** | Velocità, Resistenza, Aggressività, Qualità, Gioco Mani, Entrate, Passaggio, Dribbling, Rifinitura, Tiro, Stato di forma |
 | **Media** | Not editable directly — the game computes it as the average of Velocità, Resistenza, Aggressività and Qualità, so raising those raises Media |
-| **Player age** | By setting the birth year |
+| **Player age** | By setting the birth year — lasts until the game reloads the career (new season or full reload), which re-imports birth dates from the database; just re-apply it |
 | **Morale** | 23 to 99 |
 | **Restore** | Put any player back to the values he had before you touched him |
 

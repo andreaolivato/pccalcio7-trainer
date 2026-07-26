@@ -50,7 +50,7 @@ si prefieres compilarlo tú.
 | **Capacidad del estadio** | De 100 a 1.000.000 de plazas |
 | **Atributos** | Velocidad, Resistencia, Agresividad, Calidad, Juego de manos, Entradas, Pase, Regate, Remate, Tiro, Estado de forma |
 | **Media** | No se edita directamente: el juego la calcula como promedio de Velocidad, Resistencia, Agresividad y Calidad, así que subir esas sube la Media |
-| **Edad** | Cambiando el año de nacimiento |
+| **Edad** | Cambiando el año de nacimiento — dura hasta que el juego recarga la carrera (nueva temporada o reinicio), porque las fechas de nacimiento se releen de la base de datos; basta con volver a aplicarla |
 | **Moral** | De 23 a 99 |
 | **Restaurar** | Devuelve a un jugador los valores que tenía antes de tus cambios |
 

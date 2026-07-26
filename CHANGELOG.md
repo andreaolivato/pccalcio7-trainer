@@ -7,6 +7,10 @@
   scanner's requirement that all three name strings sit within 120 bytes rejected the
   record. Found with G. Melosi at Sampdoria; the squad scan now requires only the
   short/full pair to be adjacent.
+* Known limit, now documented: an age edit lasts only until the game reloads the
+  career (new season or full reload). Birth dates of database players are never
+  stored in the save — the game re-imports them from `DBDAT\jug*.fdi` — so the
+  edit has to be re-applied. Attribute edits are career state and do persist.
 
 ## v1.0.0
 

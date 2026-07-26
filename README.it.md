@@ -45,7 +45,7 @@ preferisci compilarlo da solo.
 | **Capienza stadio** | Da 100 a 1.000.000 di posti |
 | **Caratteristiche** | Velocità, Resistenza, Aggressività, Qualità, Gioco Mani, Entrate, Passaggio, Dribbling, Rifinitura, Tiro, Stato di forma |
 | **Media** | Non si modifica direttamente: il gioco la calcola come media di Velocità, Resistenza, Aggressività e Qualità, quindi alzando quelle sale anche la Media |
-| **Età** | Impostando l'anno di nascita |
+| **Età** | Impostando l'anno di nascita — dura finché il gioco non ricarica la carriera (nuova stagione o riavvio), perché le date di nascita vengono rilette dal database; basta riapplicarla |
 | **Morale** | Da 23 a 99 |
 | **Ripristina** | Riporta un giocatore ai valori che aveva prima delle tue modifiche |
 
