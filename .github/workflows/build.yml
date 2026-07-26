@@ -10,6 +10,10 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    # Publishing a release needs write access to contents. The default token is
+    # read-only, which makes the build pass and only the release step fail.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
