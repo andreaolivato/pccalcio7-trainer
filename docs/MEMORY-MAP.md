@@ -199,6 +199,16 @@ There is no age field. The card computes it from `Q+0xE2`. All 25 players in a t
 birth dates matching their database records exactly, and changing a birth year from 1971 to 1979
 moved the card from **Età 30** to **Età 22**.
 
+**A birth-date edit does not survive a reload.** Verified live after a season rollover reverted
+one: the career record at `Q+0xE2` is the **only** copy in memory (a full scan for the date in
+both byte orders finds nothing else for that player), and `main.dat` does not store database
+players' birth dates at all — only **career-generated** players' (their dates sit in the save
+in FDI order `day u8, month u8, year u16`; database players' dates appear zero times). Static
+player data is re-imported from `DBDAT\jug*.fdi` whenever the career is rebuilt, which restores
+the original date. In the FDI player record the birth date is at `+0x2E`: `day u8, month u8,
+year u16` right before the birthplace string. Career-evolving data (the card attributes) lives
+in the save and keeps edits; the birth date is static data and does not.
+
 ### Morale — measured, not solved
 
 Five bytes at `Q+0xB0`, a recency-weighted form history. Zeroing one byte at a time gives each
