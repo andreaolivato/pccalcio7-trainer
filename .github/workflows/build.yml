@@ -43,7 +43,14 @@ jobs:
           body: |
             Download **PcCalcio7Trainer.exe** and run it. Nothing to install.
 
-            Start PC Calcio 7 and load your career first. Windows may warn about an
-            unknown publisher, and antivirus may flag it: the trainer writes to the
-            game's memory, which looks like malware to a heuristic scanner. The full
-            source is in this repository if you would rather build it yourself.
+            Start PC Calcio 7 and load your career first, then run the trainer: it
+            attaches by itself and works out which club you manage.
+
+            Windows may warn about an unknown publisher, and antivirus may flag it:
+            the trainer writes to the game's memory, which looks like malware to a
+            heuristic scanner. The full source is in this repository if you would
+            rather build it yourself.
+
+            `SelfTest.exe` is optional. It runs the same searches from a console and
+            prints what it finds, which is useful to paste into a bug report if the
+            trainer cannot see your club.

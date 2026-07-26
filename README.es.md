@@ -12,7 +12,20 @@ Un trainer gratuito para **PC Calcio 7** y **PC Calcio 7 Plus** (Dinamic Multime
 la edición italiana de **PC Fútbol 7**. Modifica tu partida mientras el juego está abierto:
 dinero del club, capacidad del estadio, y atributos, edad y moral de cualquier jugador.
 
-Un solo archivo. Nada que instalar. **Menos de 50 KB.**
+## En resumen
+
+### ⬇ [**Descargar PcCalcio7Trainer.exe**](https://github.com/andreaolivato/pccalcio7-trainer/releases/latest/download/PcCalcio7Trainer.exe)
+
+Un solo archivo. Nada que instalar.
+
+1. Abre **PC Calcio 7** y carga tu partida
+2. Ejecuta el programa: se conecta solo y detecta cuál es tu equipo
+3. Cambia dinero, estadio o jugadores y pulsa **Aplicar**
+4. Sal de la pantalla del juego y vuelve a entrar, luego **guarda dentro del juego**
+
+Windows avisará de un "editor desconocido" y el antivirus puede protestar: el trainer escribe en
+la memoria del juego, que es lo que hacen también los malware. El código fuente está aquí, por
+si prefieres compilarlo tú.
 
 > Proyecto independiente y no oficial, sin relación con Dinamic Multimedia ni con ningún
 > titular de derechos. No incluye archivos del juego: necesitas tenerlo ya instalado.

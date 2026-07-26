@@ -12,7 +12,20 @@ A small, free trainer for **PC Calcio 7** and **PC Calcio 7 Plus** (Dinamic Mult
 the Italian edition of PC Fútbol 7. It edits your career while the game is running: club money,
 stadium capacity, and any player's attributes, age and morale.
 
-One file. Nothing to install. **Under 50 KB.**
+## TL;DR
+
+### ⬇ [**Download PcCalcio7Trainer.exe**](https://github.com/andreaolivato/pccalcio7-trainer/releases/latest/download/PcCalcio7Trainer.exe)
+
+One file. Nothing to install.
+
+1. Start **PC Calcio 7** and load your career
+2. Run the exe — it attaches on its own and works out which club is yours
+3. Change money, stadium or players and press **Apply**
+4. Leave the game's screen and come back so it redraws, then **save in the game**
+
+Windows will warn about an unknown publisher and your antivirus may object: the trainer writes
+to the game's memory, which is what malware does too. The full source is here if you would
+rather build it yourself.
 
 > Not affiliated with Dinamic Multimedia or any rights holder. No game files are included —
 > you need your own copy of the game installed.
@@ -90,8 +103,15 @@ PcCalcio7Trainer.exe     <- this is the whole program
 ```
 
 Translations are **compiled into the exe**. There is no configuration file, no JSON, no
-language pack to copy. `SelfTest.exe` is an optional diagnostic console build; users never
-need it.
+language pack to copy.
+
+`SelfTest.exe` is a **diagnostic** build and nobody needs it to use the trainer. It runs the
+same searches from a console and prints what it finds — how much memory it scanned, how many
+clubs it saw, which club it detected, the squad it read, and how long each step took. It exists
+for two reasons: it verifies a change against a real game without clicking through the
+interface, and when someone reports "it can't find my club", its output is far more useful in a
+bug report than a screenshot. Attach it to releases or don't; the trainer is complete without
+it.
 
 The trainer *writes* three small files next to itself the first time you use it. They are
 outputs, not inputs — don't ship them, don't commit them, and deleting them loses nothing but
