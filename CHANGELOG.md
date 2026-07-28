@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.1.1
+
+* **Fix: club auto-detection failed on clubs with a common stadium size** and the UI
+  silently fell back to the club remembered from the previous career (a Pisa career
+  showed up as Sampdoria). Detection required the capacity to have a recognisable
+  live copy, but a shared default ground (20,000 seats — dozens of clubs) has none.
+  Detection now keys on the balance: unique among clubs, duplicated in memory, and
+  carrying **fractional lire** — every human balance observed ends in odd centesimi
+  from interest arithmetic, while AI figures are whole numbers. When no candidate
+  has a fractional balance (nothing earned yet), detection stands down instead of
+  guessing. Verified live: a Pisa/Serie C1 career is now detected out of 624 clubs,
+  repeatedly, while the game was being played.
+* **Fix: stadium capacity edits could silently do nothing.** With a shared capacity
+  value the old shape heuristic found no live copy, so only the club record was
+  written — which changes nothing on screen — while the log claimed success. The
+  search now also recognises the game's per-club stadium struct (capacity, 75,
+  1000, 50, 50, ground value at 750 lire/seat) and career copies keyed by the club
+  id 0xD8 bytes before the capacity, each guarded so only copies provably tied to
+  the club are written. When only the club record can be identified, the trainer
+  now says so and asks you to open the stadium screen in the game and press Apply
+  again (the on-screen copy then exists and is caught).
+* `tools/trainer.py capacity` uses the same targeted search instead of writing
+  every address that holds the current value (which refused to run — 50 matches —
+  on a 20,000-seat ground).
+* The per-club stadium struct and the staged detection are documented in
+  `docs/MEMORY-MAP.md`.
+
 ## v1.1.0
 
 * **New: player nationality.** A dropdown on the player panel with 31 confirmed

@@ -53,16 +53,48 @@ Capacities read straight out of this table match the real 1998 grounds, which is
 confirmed the field: Inter 85,443 (San Siro), Lazio and Roma 82,922 (Olimpico), Napoli 78,210
 (San Paolo), Juventus 69,041 (Delle Alpi), Sampdoria 40,122 (Marassi).
 
-### Capacity exists in two places
+### Capacity exists in several places
 
-Writing the club record alone changes **nothing on screen**. A second copy lives in a
-live-career structure and the display reads that one. Both must be written.
+Writing the club record alone changes **nothing on screen**. Live copies exist elsewhere and
+the display reads those. Everything tied to the club must be written.
 
-The second copy is recognised by shape: the capacity value, then a u32 zero, then an f32 in a
-money-like range (1e6–1e12), with a heap pointer immediately before it. That shape is **not
-rare** — it matches thousands of unrelated places on its own — so it is only trusted when
-filtering by the current capacity value leaves exactly one candidate. A round capacity such as
-200,000 matched four addresses, two of them noise.
+**The per-club stadium struct (found 2026-07-28, debugging a Pisa career).** Every club — 2,054
+of them, all countries — has a 184-byte (0xB8) stadium object:
+
+```
++0x00  ptr   into the club's binary sub-record in the FDI pool (the strings just
+             before that target name the owning club)
++0x04  u32   small tag, 1–7
++0x08  u32   capacity
++0x0C  u32   75          }
++0x10  u32   1000        }  literal run, the struct's signature
++0x14  u32   50          }
++0x18  u32   50          }
++0x1C  u32   ground value = capacity × 750, rounded to thousands
++0x20  u32   75, then 50, 50, 43000, 1000 ...
+```
+
+Copies of a club's struct also appear inside career arrays (fixtures, the current match)
+where the **club id sits 0xD8 bytes before the capacity**.
+
+**The ambiguity trap.** Sampdoria's Marassi (40,122 → upgraded 76,122) is a unique value, so
+"write every copy of the current value" worked and the original notes wrongly concluded there
+were exactly two copies. Pisa's default 20,000-seat ground is shared by *dozens* of clubs —
+50 addresses hold 20000, and the stadium structs of Bochum, Alverca, River Plate and others are
+byte-identical to Pisa's. Nothing in the struct itself says whose it is. The trainer therefore
+only writes a candidate when something ties it to the club: the id right before it (club
+record), the id 0xD8 before it (career copies), or a signature/shape match that is **unique in
+the whole process** (with a unique capacity value, the one matching stadium struct can only be
+ours). With a shared capacity and the stadium screen closed, only the club record is safely
+identifiable — the trainer says so and asks for the stadium screen to be opened in game and
+Apply pressed again, which brings the on-screen copy into existence where the shape rule can
+catch it.
+
+The on-screen (widget) copy is recognised by shape: the capacity value, then a u32 zero, then
+an f32 in a money-like range (1e6–1e12), with a heap pointer immediately before it. That shape
+is **not rare** — it matches thousands of unrelated places on its own — so it is only trusted
+when filtering by the current capacity value leaves exactly one candidate. A round capacity
+such as 200,000 matched four addresses, two of them noise.
 
 ### The +0x80 trap
 
@@ -105,15 +137,30 @@ look wrong for hours.
 
 ## 3. Which club the user manages
 
-No field says so. It is inferred, and **two signals must agree**:
+No field says so. It is inferred, in stages (reworked 2026-07-28 after the original logic
+failed on a Pisa career and silently fell back to the club remembered in the settings file):
 
-1. The club's balance is **unique among all clubs** *and* appears elsewhere in memory. The game
-   keeps a live second copy only for the club being managed.
-2. That club's **capacity also has exactly one live copy** (the shape described above).
+1. Candidates: clubs whose balance is **unique among all clubs** *and* appears elsewhere in
+   memory. The game duplicates the balance into the finance ledger only for the club being
+   managed. On a live Pisa career this stage produced eight to ten candidates depending on the
+   screen: some AI figures happen to sit in a second struct too.
+2. The decider: **fractional lire**. Every human balance observed ends in odd centesimi from
+   interest arithmetic (33,763,112,606.36 / 49,494,659,227.07 / 15,692,778,476.98) while every
+   impostor was a whole number. Exactly one fractional candidate → done. This is what picks
+   Pisa. ("Whole millions" was tried first and lost to Beasain's 87,500,000, a database figure
+   with half-million granularity.) No fractional candidate — a career where nothing has been
+   earned yet — and detection stands down rather than guess; the club dropdown and the
+   remembered choice cover that case.
+3. Only on a fractional tie (never observed), the original structural signal: the candidate
+   whose **capacity also has a live copy**, in strict form — the unique-stadium-struct rule is
+   excluded here because every club with a unique capacity passes it (that rule once crowned
+   Beasain), leaving the id-keyed and on-screen shapes described above.
 
-Either test alone fails badly. "Balance appears more than once" picked **Bournemouth**, because
+Single tests alone fail badly. "Balance appears more than once" picked **Bournemouth**, because
 94 clubs share a round 20 miliardi and common values win a popularity contest. The structural
-shape matches 4,789 places. Together they picked one club out of 624, in under a second.
+shape matches 4,789 places. Requiring cash *and* structure unconditionally — the pre-2026-07-28
+logic — failed the other way: a club with a shared default capacity has no recognisable live
+copy, so detection returned nothing.
 
 ---
 

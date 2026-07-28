@@ -336,44 +336,90 @@ namespace PcCalcio7Trainer
         }
 
         /// <summary>
-        /// Capacity lives in two places: the club record and a second live-career
-        /// structure. A plain value search also catches unrelated data - a round
-        /// capacity like 200000 matched four addresses, two of them noise. Writing
-        /// noise is how an earlier build crashed the game, so a candidate counts
-        /// only if the club id precedes it or a money-sized float follows it.
+        /// Capacity lives in several places besides the club record. The game
+        /// keeps a 184-byte stadium struct per club - capacity, then the literal
+        /// run 75, 1000, 50, 50, then the ground's value at three quarters of a
+        /// thousand lire per seat - and career structures repeat the capacity
+        /// with the club id 0xD8 bytes before it. A plain value search also
+        /// catches unrelated data - a round capacity like 200000 matched four
+        /// addresses, two of them noise, and 20,000 (the default ground of dozens
+        /// of clubs) matches fifty. Writing noise is how an earlier build crashed
+        /// the game, so a candidate counts only when something ties it to THIS
+        /// club (the id right before it, or the id 0xD8 before it), or when its
+        /// shape is unmistakable AND unique in the whole process.
         /// </summary>
         public List<uint> FindCapacityFields(uint currentCapacity, uint teamId)
         {
-            var record = new List<uint>();
-            var live = new List<uint>();
+            return FindCapacityFields(currentCapacity, teamId, true);
+        }
+
+        /// <summary>
+        /// includeUniqueFacility exists because the unique-stadium-struct rule is
+        /// sound for WRITING (our club provably has this capacity, so a unique
+        /// match can only be ours) but wrong as a detection signal: every club
+        /// with any unique capacity gets a second field from it, which once made
+        /// club detection crown Beasain.
+        /// </summary>
+        public List<uint> FindCapacityFields(uint currentCapacity, uint teamId,
+                                             bool includeUniqueFacility)
+        {
+            var found = new List<uint>();
+            var facility = new List<uint>();
+            var widget = new List<uint>();
             foreach (uint a in FindUInt32(currentCapacity))
             {
-                if (a < 4) continue;
+                if (a < 0xD8) continue;
                 uint prev = ReadU32(a - 4);
-                if (prev == teamId) { record.Add(a); continue; }
+                if (prev == teamId) { found.Add(a); continue; }      // club record
+                if (ReadU32(a - 0xD8) == teamId) { found.Add(a); continue; }  // id-keyed career copy
+                byte[] tail = Read(a + 4, 16);
+                if (tail != null && tail.Length == 16
+                    && BitConverter.ToUInt32(tail, 0) == 75
+                    && BitConverter.ToUInt32(tail, 4) == 1000
+                    && BitConverter.ToUInt32(tail, 8) == 50
+                    && BitConverter.ToUInt32(tail, 12) == 50)
+                {
+                    facility.Add(a);        // per-club stadium struct
+                    continue;
+                }
                 if (ReadU32(a + 4) != 0) continue;
-                byte[] tail = Read(a + 8, 4);
-                if (tail == null || tail.Length < 4) continue;
-                float f = BitConverter.ToSingle(tail, 0);
-                if (prev >= 0x00100000 && f >= 1e6f && f <= 1e12f) live.Add(a);
+                byte[] t2 = Read(a + 8, 4);
+                if (t2 == null || t2.Length < 4) continue;
+                float f = BitConverter.ToSingle(t2, 0);
+                if (prev >= 0x00100000 && f >= 1e6f && f <= 1e12f) widget.Add(a);
             }
-            // The club record is unambiguous. The live copy is recognised by shape
-            // alone and that shape is not rare, so it is trusted only when exactly
-            // one candidate turns up - writing guesses is what crashed the game once.
-            if (live.Count == 1) record.Add(live[0]);
-            return record;
+            // Every club has a stadium struct, so a match only means "some club
+            // with this capacity" - unless exactly one exists, in which case it
+            // can only be ours (our club provably has this capacity). The same
+            // exactly-one rule guards the loosely-shaped screen copy.
+            if (includeUniqueFacility && facility.Count == 1 && !found.Contains(facility[0]))
+                found.Add(facility[0]);
+            if (widget.Count == 1 && !found.Contains(widget[0])) found.Add(widget[0]);
+            return found;
         }
 
         /// <summary>
         /// Work out which club the user manages, with no input from them.
         ///
-        /// Two signals have to agree. First, the balance in the club record must
-        /// be unique among all clubs and appear somewhere else in memory too -
-        /// the human club keeps a second live copy, while AI clubs share round
-        /// database figures (94 clubs all held 20 miliardi, which is what defeated
-        /// a naive "appears more than once" test). Second, that club's capacity
-        /// must also have exactly one live copy. On a real career the two
-        /// together picked out a single club from 624.
+        /// First signal: the balance in the club record must be unique among all
+        /// clubs and appear somewhere else in memory too - the human club's
+        /// balance is duplicated into its finance ledger, while AI clubs share
+        /// round database figures (94 clubs all held 20 miliardi, which is what
+        /// defeated a naive "appears more than once" test). That alone leaves
+        /// several candidates: some AI figures happen to sit in a second struct.
+        /// The decider is fractional lire. Every human balance observed so far
+        /// ends in odd centesimi from interest arithmetic (...606.36, ...227.07,
+        /// ...476.98) while every AI figure is a whole number - "whole millions"
+        /// was tried first and lost to Beasain's 87,500,000. Only a fractional
+        /// tie (never seen) falls through to the old structural signal, and only
+        /// in its strict form: the unique-stadium-struct rule is excluded there,
+        /// because every club with a unique capacity passes it. Requiring the
+        /// structural signal unconditionally was the original bug: a club with a
+        /// common default capacity (20,000 seats, shared by dozens of clubs) has
+        /// no recognisable live copy, and detection silently fell back to
+        /// whatever club the settings file remembered. When no candidate has a
+        /// fractional balance (a career where nothing has been earned yet),
+        /// detection stands down rather than guess.
         /// </summary>
         public TeamInfo DetectHumanClub(List<TeamInfo> teams)
         {
@@ -402,13 +448,24 @@ namespace PcCalcio7Trainer
                 }
             }
 
+            var candidates = new List<TeamInfo>();
             foreach (TeamInfo t in teams)
             {
                 int mine, total;
                 if (!perClub.TryGetValue(t.Cash, out mine) || mine != 1) continue;
                 if (!inMemory.TryGetValue(t.Cash, out total) || total < 2) continue;
-                if (FindCapacityFields(t.Capacity, t.Id).Count >= 2) return t;
+                candidates.Add(t);
             }
+
+            var odd = new List<TeamInfo>();
+            foreach (TeamInfo t in candidates)
+                if (Math.Abs(t.Cash - Math.Round(t.Cash)) > 1e-6)
+                    odd.Add(t);
+            if (odd.Count == 1) return odd[0];
+            if (odd.Count == 0) return null;
+
+            foreach (TeamInfo t in odd)
+                if (FindCapacityFields(t.Capacity, t.Id, false).Count >= 2) return t;
             return null;
         }
     }
@@ -1116,7 +1173,7 @@ namespace PcCalcio7Trainer
                 return;
             }
             List<uint> copies = _mem.FindCapacityFields(_team.Capacity, _team.Id);
-            if (copies.Count == 0 || copies.Count > 4)
+            if (copies.Count == 0 || copies.Count > 6)
             {
                 Log(Lang.T("capUnsure", copies.Count));
                 return;
@@ -1126,6 +1183,9 @@ namespace PcCalcio7Trainer
             foreach (uint a in copies) if (_mem.Write(a, bytes)) ok++;
             Log(Lang.T("capSet", _team.Capacity.ToString("N0"), target.ToString("N0"), ok)
                 + " " + Lang.T("redraw"));
+            // One address means only the club record was written, and the club
+            // record alone does not change what the stadium screen shows.
+            if (copies.Count == 1) Log(Lang.T("capHint"));
             RefreshAll(false);
         }
 

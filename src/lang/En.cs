@@ -79,6 +79,7 @@ namespace PcCalcio7Trainer.Translations
             { "capSet", "Capacity {0} -> {1} ({2} locations)." },
             { "capBad", "Capacity must be between 100 and 1000000." },
             { "capUnsure", "Found {0} capacity fields - nothing written, press Refresh." },
+            { "capHint", "Only the club record was found, and it alone does not change the stadium screen: open the stadium in the game and press Apply again." },
             { "playerSet", "{0}: media {1}, morale {2}, born {3}." },
             { "moraleNear", "morale {0} (nearest to {1})" },
             { "writeFail", "Could not write to {0}." },

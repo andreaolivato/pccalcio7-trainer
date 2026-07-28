@@ -86,6 +86,7 @@ namespace PcCalcio7Trainer.Translations
             { "capSet", "Capienza {0} -> {1} ({2} posizioni)." },
             { "capBad", "La capienza deve essere fra 100 e 1000000." },
             { "capUnsure", "Trovate {0} posizioni per la capienza: non scrivo nulla, premi Aggiorna." },
+            { "capHint", "Ho trovato solo il record del club, che da solo non cambia la schermata dello stadio: apri lo stadio nel gioco e premi di nuovo Applica." },
             { "playerSet", "{0}: media {1}, morale {2}, nato nel {3}." },
             { "moraleNear", "morale {0} (il più vicino a {1})" },
             { "writeFail", "Non riesco a scrivere su {0}." },

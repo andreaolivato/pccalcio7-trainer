@@ -183,6 +183,69 @@ class Game:
                 s = i + 1
         return out
 
+    def find_capacity_fields(self, team_id, current):
+        """Addresses safe to write for THIS club's capacity.
+
+        A plain value search is only safe when the capacity is unique - the
+        default 20,000-seat ground is shared by dozens of clubs and matches
+        ~50 addresses. A candidate counts when something ties it to the club:
+
+        * the club id directly before it        -> the club record;
+        * the club id 0xD8 bytes before it      -> id-keyed career copies;
+        * the per-club stadium struct signature (capacity, 75, 1000, 50, 50,
+          then the ground value at 750/seat), but only when EXACTLY ONE such
+          struct in the whole process holds the value - every club has one,
+          so uniqueness is what makes it ours;
+        * the loose screen-copy shape (value, 0, money-like f32, pointer
+          before), same exactly-one rule.
+        """
+        record, idkeyed, facility, widget = [], [], [], []
+        pat = struct.pack("<I", int(current))
+        for base, size in self.regions():
+            d = self.read(base, size)
+            s = 0
+            while True:
+                i = d.find(pat, s)
+                if i < 0:
+                    break
+                s = i + 1
+                a = base + i
+                prev = struct.unpack_from("<I", d, i - 4)[0] if i >= 4 else 0
+                if prev == team_id:
+                    record.append(a)
+                    continue
+                if i >= 0xD8 and struct.unpack_from("<I", d, i - 0xD8)[0] == team_id:
+                    idkeyed.append(a)
+                    continue
+                if i + 20 <= len(d) and \
+                        struct.unpack_from("<IIII", d, i + 4) == (75, 1000, 50, 50):
+                    facility.append(a)
+                    continue
+                if i + 12 <= len(d):
+                    nxt, = struct.unpack_from("<I", d, i + 4)
+                    f, = struct.unpack_from("<f", d, i + 8)
+                    if nxt == 0 and prev >= 0x00100000 and 1e6 <= f <= 1e12:
+                        widget.append(a)
+        out = record + [a for a in idkeyed if a not in record]
+        if len(facility) == 1 and facility[0] not in out:
+            out.append(facility[0])
+        if len(widget) == 1 and widget[0] not in out:
+            out.append(widget[0])
+        return out
+
+    def set_capacity_fields(self, team_id, current, value):
+        """Set the capacity in every copy tied to this club. Returns addresses hit."""
+        if not 100 <= int(value) <= 1_000_000:
+            raise ValueError("implausible capacity")
+        addrs = self.find_capacity_fields(team_id, current)
+        if not addrs:
+            raise ValueError(f"no location holds {current} for club {team_id}")
+        if len(addrs) > 6:
+            raise ValueError(f"{len(addrs)} matches is too many to be the capacity")
+        for a in addrs:
+            self.write(a, struct.pack("<I", int(value)))
+        return addrs
+
     def set_capacity_everywhere(self, current, value):
         """Set the stadium capacity in every copy. Returns the addresses hit."""
         if not 100 <= int(value) <= 1_000_000:

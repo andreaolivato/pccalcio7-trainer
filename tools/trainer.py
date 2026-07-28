@@ -125,10 +125,12 @@ def main():
         new = int(sys.argv[3])
         old = struct.unpack("<I", g.read(addr + OFF_CAPACITY, 4))[0]
         _backup(f"capacity:{team_id}", old)
-        hit = g.set_capacity_everywhere(old, new)
+        hit = g.set_capacity_fields(team_id, old, new)
         print(f"capacity {old:,} -> {new:,} in {len(hit)} location(s): "
               + ", ".join(f"0x{a:08X}" for a in hit))
-        print("(both copies are required - the stadium screen reads the second one)")
+        if len(hit) == 1:
+            print("only the club record was found, which alone does not change "
+                  "the stadium screen - open the stadium in the game and rerun")
 
     elif cmd == "restore-accumulator":
         old = json.loads(BACKUP.read_text())[f"accumulator:{team_id}"]
