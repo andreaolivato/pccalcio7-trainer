@@ -96,6 +96,27 @@ is **not rare** — it matches thousands of unrelated places on its own — so i
 when filtering by the current capacity value leaves exactly one candidate. A round capacity
 such as 200,000 matched four addresses, two of them noise.
 
+### The record is the engine's master copy; the Stadio screen is not (2026-07-29)
+
+Confirmed on a Siena career where only the club record had been written (9,600 → 120,000):
+
+* The **game itself propagates the record**. Over a few in-game weeks the number of stadium
+  structs holding 120,000 grew from 6 to 15, each with its ground value *recomputed* by the
+  game to 120,000 × 750 — fixture copies being rebuilt from the record.
+* The **attendance model uses it**: a home match drew 1,050 spectators shown as **1% affluenza**
+  — 1% of ~120,000. At the original 9,600 that would read 11%.
+* The **Stadio screen does not**: it kept showing "Capienza 9.600". After the propagation, *no
+  structure in the whole process* still held 9,600 relating to Siena — as u32 or u16, alone or
+  alongside the screen's other figures (parcheggio 2.000, works 12.000/15 weeks). The screen's
+  capienza is therefore **derived from sector data in an encoding not yet identified**, likely
+  the same store behind the expansion works. Every plain-value fingerprint tried came back as
+  player ids (9600 is also a player id), interpolation tables, or XORed pool data.
+
+Practical consequence: a capacity edit is real for the engine (attendance %, fixture data) as
+of the next matchday even when only the record is written; the Stadio screen's figure stays at
+the sector-derived value until in-game works change it. Cracking the sector store needs a scan
+while the Stadio screen is open, which is when its widget materialises.
+
 ### The +0x80 trap
 
 This f64 looks exactly like club money: it holds a plausible balance, and **the game really does
